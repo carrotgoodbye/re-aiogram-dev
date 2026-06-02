@@ -1,5 +1,6 @@
 # features
 from .core.bot import Bot
+from .core.keyboard import SimpleKeyboard
 
 # aiogram
 # from .client import *
@@ -25,5 +26,6 @@ __all__=[
     "Bot",
     "Message",
     "CallbackQuery",
+    "SimpleKeyboard",
     "router"
 ]

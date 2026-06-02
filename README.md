@@ -10,7 +10,7 @@ The goal of the project is to stay fully compatible with aiogram, but provide a 
 
 ```bash
 pip install re_aiogram
-````
+```
 
 ```python
 import re_aiogram
@@ -25,6 +25,7 @@ import re_aiogram
 * router auto-loading
 * built-in MediaGroup support
 * aiogram-compatible imports
+* simple and intuitive keyboard builder
 
 ---
 
@@ -51,6 +52,86 @@ You can specify a token from the virtual environment:
 
 ```python
 bot = Bot(env_token="API_TOKEN")
+```
+
+---
+
+# SimpleKeyboard
+
+`SimpleKeyboard` provides a fast and intuitive way to create inline and reply keyboards with minimal boilerplate.
+
+```python
+from re_aiogram import SimpleKeyboard
+```
+
+## Inline keyboard
+
+```python
+@bot.message(Command("inline_keyboard"))
+async def inline_keyboard(message: Message):
+    kb = (
+        SimpleKeyboard.inline()
+        .row(
+            ("👤 Profile", "profile"),
+            ("⚙ Settings", "settings")
+        )
+        .row(
+            ("❌ Close", "close")
+        )
+    )
+
+    await message.answer(
+        "Inline keyboard",
+        reply_markup=kb()
+    )
+```
+
+You can also automatically arrange buttons using `adjust`:
+
+```python
+kb = (
+    SimpleKeyboard.inline()
+    .buttons(
+        ("1", "1"),
+        ("2", "2"),
+        ("3", "3"),
+        ("4", "4"),
+        adjust=2
+    )
+)
+```
+
+## Reply keyboard
+
+```python
+@bot.message(Command("reply_keyboard"))
+async def reply_keyboard(message: Message):
+    kb = (
+        SimpleKeyboard.reply(resize_keyboard=True)
+        .row("👤 Profile", "⚙ Settings")
+        .row("❌ Close")
+    )
+
+    await message.answer(
+        "Reply keyboard",
+        reply_markup=kb()
+    )
+```
+
+## Clear keyboard
+
+```python
+@bot.message(Command("clear_keyboard"))
+async def clear_keyboard(message: Message):
+    kb = (
+        SimpleKeyboard.reply()
+        .clear()
+    )
+
+    await message.answer(
+        "Reply keyboard was removed",
+        reply_markup=kb()
+    )
 ```
 
 ---
@@ -86,8 +167,9 @@ async def handle_album(message: Message, media_group: MediaGroup):
 | `media_group.videos`    | Returns a list of `Message` objects that contain videos.                                                                               |
 | `media_group.documents` | Returns a list of `Message` objects that contain documents.                                                                            |
 | `media_group.audio`     | Returns a list of `Message` objects that contain audio files.                                                                          |
-| `media_group.is_mixed`  | Returns `True` if the album contains different media types (e.g., photos and videos together).                                         |
+| `media_group.is_mixed`  | Returns `True` if the album contains different media types (e.g. photos and videos together).                                         |
 
+---
 
 # Routers
 
