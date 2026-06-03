@@ -54,9 +54,8 @@ class SimpleKeyboard:
 
     def buttons(self, *buttons, adjust: int = None):
         for button in buttons:
-            text, data = button
-
             if self.inline:
+                text, data = button
                 self.builder.add(
                     InlineKeyboardButton(
                         text=text,
@@ -64,6 +63,7 @@ class SimpleKeyboard:
                     )
                 )
             else:
+                text = button
                 self.builder.add(
                     KeyboardButton(
                         text=text
