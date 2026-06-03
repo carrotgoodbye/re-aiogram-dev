@@ -61,7 +61,7 @@ bot = Bot(env_token="API_TOKEN")
 `SimpleKeyboard` provides a fast and intuitive way to create inline and reply keyboards with minimal boilerplate.
 
 ```python
-from re_aiogram import SimpleKeyboard
+from re_aiogram.keyboard import SimpleKeyboard
 ```
 
 ## Inline keyboard
@@ -200,8 +200,10 @@ bot.run(logging_enabled=True)
 ### handlers/start.py
 
 ```python
-from re_aiogram import router, Message
+from re_aiogram import Router, Message
 from re_aiogram.filters import Command
+
+router = Router()
 
 
 @router.message(Command("start"))
