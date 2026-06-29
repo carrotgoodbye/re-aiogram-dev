@@ -26,6 +26,7 @@ import re_aiogram
 * built-in MediaGroup support
 * aiogram-compatible imports
 * simple and intuitive keyboard builder
+* next_step handler registration (telebot-style)
 
 ---
 
@@ -52,6 +53,65 @@ You can specify a token from the virtual environment:
 
 ```python
 bot = Bot(env_token="API_TOKEN")
+```
+
+---
+
+# Next Step
+
+A lightweight mechanism for step-by-step conversations without FSM. The next message from the user is intercepted and passed to the specified function.
+
+## How it works
+
+- `next_step` registers a function that will be called on the user's next message
+- After calling, the function is automatically removed from the queue (one-shot)
+- To continue the chain, call `next_step` again inside the function
+- Works on a high-priority filter, so it intercepts the message before regular handlers
+
+## Usage options
+
+### 1. Via bot object
+```python
+bot.next_step(message, func)
+bot.next_step(message.from_user.id, func) # alternative
+
+bot.cancel_next_step(message)
+bot.cancel_next_step(user_id) # alternative
+```
+
+### 2. Via message object
+```python
+message.next_step(func)
+```
+
+## Example
+
+```python
+from re_aiogram import Bot, Message
+from re_aiogram.filters import Command
+
+bot = Bot(env_token="API_TOKEN")
+
+
+@bot.message(Command("start"))
+async def start(message: Message):
+    await message.answer("What is your name?")
+    message.next_step(ask_name)
+
+async def ask_name(message: Message):
+    name = message.text
+    await message.answer(f"Hii, {name}! How old are you?")
+    message.next_step(lambda m: ask_age(m, name))
+
+async def ask_age(message: Message, name: str):
+    try:
+        age = int(message.text)
+        await message.answer(f"{name}, you are {age} y.o. Great!")
+    except ValueError:
+        await message.answer("It should be a number!")
+        message.next_step(lambda m: ask_age(m, name))
+
+bot.run()
 ```
 
 ---
@@ -222,18 +282,42 @@ These features are planned for upcoming versions and are not yet part of the cor
 A lightweight state/flow system replacing traditional FSM:
 
 * step-based flow control
-* `ctx.next()` and `ctx.back()`
-* shared `ctx.data`
-* parallel flows via `scope()`
+* `self.next()` and `self.finish()`
+* shared data via class attributes
 * simple chain-based conversation handling
 
-Example concept:
+## Example concept:
 
 ```python
-@router.message(Command("register"))
-async def register(message: Message, ctx: FlowContext):
-    await message.answer("What is your name?")
-    ctx.next(get_name)
+from re_aiogram import Bot, Message
+from re_aiogram.filters import Command
+from re_aiogram.flow import Flow, start, step, finish
+
+bot = Bot(token="YOUR_API_TOKEN")
+
+class Register(Flow):
+    name: str
+    age: int
+
+    @start()
+    async def ask_name(self, message: Message):
+        await message.answer("What is your name?")
+        return self.next(self.ask_age, save="name", cast=lambda m: m.text)
+
+    @step()
+    async def ask_age(self, message: Message):
+        await message.answer("How old are you?")
+        return self.next(self.finish, save="age", cast=lambda m: int(m.text))
+
+    @finish()
+    async def finish(self, message: Message):
+        await message.answer(f"{self.name}, {self.age} years old")
+
+@bot.message(Command("register"), FlowEntry(Register))
+async def register_cmd(message: Message):
+    pass
+
+bot.run()
 ```
 
 ---
