@@ -1,4 +1,5 @@
 from aiogram import Bot as _Bot, Dispatcher as _Dispatcher
+from aiogram.types import Message
 import asyncio
 import logging
 import signal
@@ -98,6 +99,15 @@ class Bot:
         self._bot = _Bot(token=self._token)
         self._dp = _Dispatcher()
 
+        # next_step storage: {user_id: func}
+        self._next_steps: dict[int, callable] = {}
+
+        # Register next_step handler FIRST — before any user handlers
+        self._dp.message.register(
+            self._handle_next_step,
+            self._NextStepFilter(self)
+        )
+
         # middlewares
         from .mediagroup import AlbumMiddleware
         self._dp.message.middleware(AlbumMiddleware())
@@ -112,6 +122,46 @@ class Bot:
     @property
     def message(self):
         return self._dp.message
+
+    def next_step(self, user_id: int, func: callable):
+        """
+        Register next handler for specific user.
+        Next message from this user will be handled by `func` instead of regular handlers.
+
+        :param user_id: Telegram user ID
+        :param func: async function(message) to call on next message
+        """
+        self._next_steps[user_id] = func
+
+    def cancel_next_step(self, user_id: int):
+        """
+        Cancel registered next step for user.
+        """
+        self._next_steps.pop(user_id, None)
+
+    async def _handle_next_step(self, message: Message):
+        """
+        Internal handler that catches messages with a registered next_step.
+        """
+        user_id = message.from_user.id
+        next_func = self._next_steps.pop(user_id, None)
+        if next_func:
+            try:
+                return await next_func(message)
+            except Exception as e:
+                logging.exception("Error in next_step handler: %s", e)
+                await message.answer("Произошла ошибка. Попробуйте снова.")
+
+    class _NextStepFilter:
+        """
+        Filter that passes only when user has a pending next_step.
+        """
+
+        def __init__(self, bot_instance):
+            self.bot = bot_instance
+
+        def __call__(self, message: Message) -> bool:
+            return message.from_user.id in self.bot._next_steps
 
     def load(self, *paths: str):
         """
