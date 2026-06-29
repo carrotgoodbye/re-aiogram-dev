@@ -127,6 +127,95 @@ class Bot:
     def message(self):
         return self._dp.message
 
+    @property
+    def edited_message(self):
+        return self._dp.edited_message
+
+    @property
+    def channel_post(self):
+        return self._dp.channel_post
+
+    @property
+    def edited_channel_post(self):
+        return self._dp.edited_channel_post
+
+    @property
+    def inline_query(self):
+        return self._dp.inline_query
+
+    @property
+    def chosen_inline_result(self):
+        return self._dp.chosen_inline_result
+
+    @property
+    def callback_query(self):
+        return self._dp.callback_query
+
+    @property
+    def shipping_query(self):
+        return self._dp.shipping_query
+
+    @property
+    def pre_checkout_query(self):
+        return self._dp.pre_checkout_query
+
+    @property
+    def poll(self):
+        return self._dp.poll
+
+    @property
+    def poll_answer(self):
+        return self._dp.poll_answer
+
+    @property
+    def my_chat_member(self):
+        return self._dp.my_chat_member
+
+    @property
+    def chat_member(self):
+        return self._dp.chat_member
+
+    @property
+    def chat_join_request(self):
+        return self._dp.chat_join_request
+
+    @property
+    def error(self):
+        return self._dp.error
+
+    # aiogram 3.7+ / Bot API 7.0+
+    @property
+    def business_connection(self):
+        return self._dp.business_connection
+
+    @property
+    def business_message(self):
+        return self._dp.business_message
+
+    @property
+    def deleted_business_messages(self):
+        return self._dp.deleted_business_messages
+
+    @property
+    def message_reaction(self):
+        return self._dp.message_reaction
+
+    @property
+    def message_reaction_count(self):
+        return self._dp.message_reaction_count
+
+    @property
+    def purchased_paid_media(self):
+        return self._dp.purchased_paid_media
+
+    @property
+    def chat_boost(self):
+        return self._dp.chat_boost
+
+    @property
+    def removed_chat_boost(self):
+        return self._dp.removed_chat_boost
+
     def next_step(self, target: Message | int, func: callable):
         """
         Register next handler for specific user.

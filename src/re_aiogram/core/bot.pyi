@@ -155,6 +155,29 @@ from typing import Any, List, Union, Optional, Sequence
 
 class Bot:
     message: Any
+    edited_message: Any
+    channel_post: Any
+    edited_channel_post: Any
+    inline_query: Any
+    chosen_inline_result: Any
+    callback_query: Any
+    shipping_query: Any
+    pre_checkout_query: Any
+    poll: Any
+    poll_answer: Any
+    my_chat_member: Any
+    chat_member: Any
+    chat_join_request: Any
+    error: Any
+    business_connection: Any
+    business_message: Any
+    edited_business_message: Any
+    deleted_business_messages: Any
+    message_reaction: Any
+    message_reaction_count: Any
+    chat_boost: Any
+    removed_chat_boost: Any
+    purchased_paid_media: Any
 
     def __init__(self, token: str = None, env_token: str | None = None) -> None: ...
 
