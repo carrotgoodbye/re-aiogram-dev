@@ -1,5 +1,6 @@
 from aiogram import Bot as _Bot, Dispatcher as _Dispatcher
 from aiogram.types import Message
+from aiogram import BaseMiddleware
 import asyncio
 import logging
 import signal
@@ -112,6 +113,9 @@ class Bot:
         from .mediagroup import AlbumMiddleware
         self._dp.message.middleware(AlbumMiddleware())
 
+        # Attach bot methods to message for convenient API
+        self._dp.message.middleware(self._BotReferenceMiddleware(self))
+
     def __getattr__(self, name: str):
         if name in self._BOT_METHODS:
             return getattr(self._bot, name)
@@ -123,20 +127,28 @@ class Bot:
     def message(self):
         return self._dp.message
 
-    def next_step(self, user_id: int, func: callable):
+    def next_step(self, target: Message | int, func: callable):
         """
         Register next handler for specific user.
         Next message from this user will be handled by `func` instead of regular handlers.
 
-        :param user_id: Telegram user ID
+        :param target: Message object or user_id int
         :param func: async function(message) to call on next message
         """
+        if isinstance(target, Message):
+            user_id = target.from_user.id
+        else:
+            user_id = target
         self._next_steps[user_id] = func
 
-    def cancel_next_step(self, user_id: int):
+    def cancel_next_step(self, target: Message | int):
         """
         Cancel registered next step for user.
         """
+        if isinstance(target, Message):
+            user_id = target.from_user.id
+        else:
+            user_id = target
         self._next_steps.pop(user_id, None)
 
     async def _handle_next_step(self, message: Message):
@@ -162,6 +174,30 @@ class Bot:
 
         def __call__(self, message: Message) -> bool:
             return message.from_user.id in self.bot._next_steps
+
+    class _BotReferenceMiddleware(BaseMiddleware):
+        """
+        Middleware that attaches next_step and cancel_next_step methods
+        directly to the Message instance for convenient API.
+        """
+
+        def __init__(self, bot_instance):
+            self.bot = bot_instance
+
+        async def __call__(self, handler, event, data):
+            if isinstance(event, Message):
+                # Bypass pydantic frozen check using object.__setattr__
+                object.__setattr__(
+                    event,
+                    "next_step",
+                    lambda func, msg=event: self.bot.next_step(msg, func)
+                )
+                object.__setattr__(
+                    event,
+                    "cancel_next_step",
+                    lambda msg=event: self.bot.cancel_next_step(msg)
+                )
+            return await handler(event, data)
 
     def load(self, *paths: str):
         """
