@@ -1,31 +1,12 @@
 from re_aiogram import Bot, Message
 from re_aiogram.filters import Command
-from re_aiogram.keyboard import SimpleKeyboard
+from re_aiogram.keyboard import SimpleKeyboard, InlineKeyboardButton
 
 bot = Bot(env_token="API_TOKEN")
 
 
-@bot.message(Command("inline_keyboard_rows"))
-async def inline_keyboard_rows(message: Message):
-    kb = (
-        SimpleKeyboard.inline()
-        .row(
-            ("👤 Profile", "profile"),
-            ("⚙ Settings", "settings")
-        )
-        .row(
-            ("❌ Close", "close")
-        )
-    )
-
-    await message.answer(
-        "Inline keyboard example",
-        reply_markup=kb()
-    )
-
-
-@bot.message(Command("inline_keyboard_adjust"))
-async def inline_keyboard_adjust(message: Message):
+@bot.message(Command("inline_keyboard"))
+async def inline_keyboard(message: Message):
     kb = (
         SimpleKeyboard.inline()
         .buttons(
@@ -33,7 +14,29 @@ async def inline_keyboard_adjust(message: Message):
             ("Two", "2"),
             ("Three", "3"),
             ("Four", "4"),
-            adjust=2
+            ("Five", "5"),
+            ("Six", "6"),
+            adjust=3
+        )
+
+        # You can generate buttons from tuple (text, callback_data)
+        .row(
+            ("👤 Profile", "profile"),
+            ("⚙ Settings", "settings")
+        )
+
+        # From aiogram objects
+        .row(
+            InlineKeyboardButton(text="❌ Close", callback_data="delete", style="danger")
+        )
+
+        # From dict
+        .row(
+            {
+                "text": "❌ Close",
+                "callback_data": "delete",
+                "style": "danger"
+            }
         )
     )
 
@@ -43,30 +46,25 @@ async def inline_keyboard_adjust(message: Message):
     )
 
 
-@bot.message(Command("reply_keyboard_rows"))
-async def reply_keyboard_rows(message: Message):
+@bot.message(Command("reply_keyboard"))
+async def reply_keyboard(message: Message):
     kb = (
         SimpleKeyboard.reply()
-        .row("👤 Profile", "⚙ Settings")
-        .row("❌ Close")
-    )
-
-    await message.answer(
-        "Reply keyboard example",
-        reply_markup=kb()
-    )
-
-
-@bot.message(Command("reply_keyboard_adjust"))
-async def reply_keyboard_adjust(message: Message):
-    kb = (
-        SimpleKeyboard.reply(resize_keyboard=False)
         .buttons(
-            "One",
-            "Two",
-            "Three",
-            "Four",
-            adjust=2
+            ("One", "1"),
+            ("Two", "2"),
+            ("Three", "3"),
+            ("Four", "4"),
+            ("Five", "5"),
+            ("Six", "6"),
+            adjust=3
+        )
+        .row("👤 Profile", "⚙ Settings")
+        .row(
+            {
+                "text": "❌ Close",
+                "style": "danger"
+            }
         )
     )
 
